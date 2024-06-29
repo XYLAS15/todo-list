@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import 'regenerator-runtime/runtime'
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import './App.css';
 
 function getDate() {
@@ -18,6 +20,14 @@ function App() {
   const [currentMinutes, setCurrentMinutes] = useState(newDate.current.getMinutes());
   const [currentSeconds, setCurrentSeconds] = useState(newDate.current.getSeconds());
 
+  const { transcript, listening, resetTranscript } = useSpeechRecognition();
+
+  useEffect(() => {
+    if (transcript && transcript !== task) {
+      setTask(transcript);
+    }
+  }, [transcript]);
+
   const submitHandler = (e) => {
     e.preventDefault();
     if (task.trim() === '') {
@@ -26,6 +36,7 @@ function App() {
     }
     setMainTask([...mainTask, { task }]);
     setTask('');
+    resetTranscript();
   };
 
   const deleteHandler = (i) => {
@@ -77,7 +88,7 @@ function App() {
           <input
             type='text'
             id='task-id'
-            name='id'
+            name='email-id'
             className='input-task'
             placeholder='Enter Your Task'
             value={task}
@@ -87,6 +98,19 @@ function App() {
           />
           <button className='btn'>ADD!</button>
         </form>
+        <button
+        id='toggel'
+          className='btn'
+          onClick={() => {
+            if (listening) {
+              SpeechRecognition.stopListening();
+            } else {
+              SpeechRecognition.startListening({ continuous: true });
+            }
+          }}
+        >
+          {listening ? 'Stop' : 'Start'} Listening
+        </button>
       </div>
 
       <div className='date'>
