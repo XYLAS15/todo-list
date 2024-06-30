@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import 'regenerator-runtime/runtime'
+import { useEffect, useRef, useState } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import './App.css';
 
@@ -19,6 +19,7 @@ function App() {
   const [currentHours, setCurrentHours] = useState(newDate.current.getHours());
   const [currentMinutes, setCurrentMinutes] = useState(newDate.current.getMinutes());
   const [currentSeconds, setCurrentSeconds] = useState(newDate.current.getSeconds());
+  const [shouldSubmit, setShouldSubmit] = useState(false);
 
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
 
@@ -27,6 +28,20 @@ function App() {
       setTask(transcript);
     }
   }, [transcript]);
+
+  useEffect(() => {
+    if (shouldSubmit) {
+      if (task.trim() === '') {
+        alert('Task cannot be empty');
+        setShouldSubmit(false);
+        return;
+      }
+      setMainTask([...mainTask, { task }]);
+      setTask('');
+      resetTranscript();
+      setShouldSubmit(false);
+    }
+  }, [shouldSubmit, task, mainTask, resetTranscript]);
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -99,11 +114,11 @@ function App() {
           <button className='btn'>ADD!</button>
         </form>
         <button
-        id='toggel'
           className='btn'
           onClick={() => {
             if (listening) {
               SpeechRecognition.stopListening();
+              setShouldSubmit(true);
             } else {
               SpeechRecognition.startListening({ continuous: true });
             }
